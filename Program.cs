@@ -1,7 +1,13 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RentAppBE.DataContext;
+using RentAppBE.Models;
+using RentAppBE.Repositories.OtpService;
+using RentAppBE.Repositories.SenderService.EmailService;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +18,9 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 //-------------services--------------
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IUserOtpService, UserOtpService>();
+
 //-----------------------------------
 
 // Sql server Db Connections
@@ -70,7 +79,57 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+
+
+
+
 var app = builder.Build();
+
+//Seed Messages
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    if (!db.UserMessages.Any())
+    {
+        db.UserMessages.AddRange(new[]
+        {
+            new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "تم إرسال الرمز",
+                EnglisMsg = "OTP has been sent"
+            },
+            new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "تم التسجيل بنجاح",
+                EnglisMsg = "Registration successful"
+            },
+            new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "تم الوصول إلى الحد الأقصى لمحاولات إعادة الإرسال. يرجى الانتظار حتى انتهاء صلاحيته",
+                EnglisMsg = "Maximum OTP resend attempts reached. Please wait until it expires."
+            },
+             new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = ":كود التغعيل الخاص بك",
+                EnglisMsg = "Your OTP is:"
+            },
+
+
+        });
+
+        db.SaveChanges();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
