@@ -1,0 +1,6 @@
+@RentAppBE_HostAddress = http://localhost:5151
+
+GET {{RentAppBE_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
