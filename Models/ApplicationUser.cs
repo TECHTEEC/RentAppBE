@@ -17,5 +17,7 @@ namespace RentAppBE.Models
         public bool IsVerified { get; set; } = false;
 
         public virtual ICollection<UserProfile>? UserProfiles { get; set; }
+
+        public virtual ICollection<RefreshToken>? RefreshTokens { get; set; }
     }
 }

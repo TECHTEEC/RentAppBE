@@ -2,12 +2,15 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RentAppBE.DataContext;
 using RentAppBE.Models;
 using RentAppBE.Repositories.OtpService;
 using RentAppBE.Repositories.SenderService.EmailService;
+using RentAppBE.Repositories.TokenService;
 using System;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +23,7 @@ builder.Services.AddOpenApi();
 //-------------services--------------
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IUserOtpService, UserOtpService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 //-----------------------------------
 
@@ -83,6 +87,29 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+// add token JWT
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+
+builder.Services.AddAuthorization();
 
 
 
@@ -123,7 +150,36 @@ using (var scope = app.Services.CreateScope())
                 ArabicMsg = ":كود التغعيل الخاص بك",
                 EnglisMsg = "Your OTP is:"
             },
-
+             new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "عليك ادخال رقم الهاتف للتحقق",
+                EnglisMsg = "You should send OTP to phone number"
+            },
+              new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "رمز التحقق غير صحيح او منتهي الصلاحية",
+                EnglisMsg = "Invalid or expired OTP"
+            },
+                new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "رمز التحقق غير صحيح او منتهي الصلاحية",
+                EnglisMsg = "Invalid or expired OTP"
+            },
+                new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "فشل بانشاء مستخدم",
+                EnglisMsg = "Failed to create user"
+            },
+                new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "تمت العملية بنجاح",
+                EnglisMsg = "The operation was completed successfully"
+            },
 
         });
 

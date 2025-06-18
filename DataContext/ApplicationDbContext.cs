@@ -17,6 +17,8 @@ namespace RentAppBE.DataContext
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<OtpRecord> OtpRecords { get; set; }
         public DbSet<UserMessage> UserMessages { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

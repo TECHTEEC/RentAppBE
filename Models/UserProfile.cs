@@ -13,14 +13,10 @@ namespace RentAppBE.Models
         public string UserId { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string? ProfilePhotoUrl { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        [EmailAddress]
-        public string EmailAddress { get; set; } = string.Empty;
         public string WhatsAppNumber { get; set; } = string.Empty;
         public string Bio { get; set; } = string.Empty;
         public string BankName { get; set; } = string.Empty;
         public string BankAccountNumber { get; set; } = string.Empty;
-        public bool IsVerified { get; set; } = false;
         public string LicenseNumber { get; set; } = string.Empty;
         public string LicenseImage { get; set; } = string.Empty;
         public LangEnum PreferredLanguage { get; set; } = LangEnum.En;
