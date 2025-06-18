@@ -88,7 +88,6 @@ namespace RentAppBE.Repositories.OtpService
                         UserName = phoneOrEmail,
                         Email = phoneOrEmail.Contains("@") ? phoneOrEmail : null,
                         PhoneNumber = !phoneOrEmail.Contains("@") ? phoneOrEmail : null,
-                        IsVerified = true,
                         CreatedAt = DateTime.UtcNow,
                         IsVendor = isVendor,
                         IsActive = true
@@ -107,7 +106,6 @@ namespace RentAppBE.Repositories.OtpService
                 return await _tokenService.CreateAccessToken(user, lang);
             }
         }
-
 
         private async Task<GeneralResponse<object>> SendOtpByEmail(string phoneOrEmail, LangEnum lang)
         {

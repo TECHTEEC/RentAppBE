@@ -17,14 +17,14 @@ namespace RentAppBE.Controllers
         }
 
         [HttpGet("GetOtp")]
-        public async Task<ActionResult> GetOtp(string phoneOrEmail, LangEnum lang)
+        public async Task<ActionResult> GetOtp(string phoneOrEmail, LangEnum lang = LangEnum.En)
         {
             return Ok(await _userOtpService.SendOtpAsync(phoneOrEmail, lang));
         }
 
 
         [HttpGet("token")]
-        public async Task<ActionResult> token(string phoneOrEmail, string otp, LangEnum lang, bool isVendor)
+        public async Task<ActionResult> token(string phoneOrEmail, string otp, bool isVendor, LangEnum lang = LangEnum.En)
         {
             return Ok(await _userOtpService.VerifyOtpAndRegisterAsync(phoneOrEmail, otp, lang, isVendor));
         }

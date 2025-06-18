@@ -14,7 +14,6 @@ namespace RentAppBE.Models
         public DateTime? DeletedAt { get; set; }
         public bool IsDeleted { get; set; } = false;
         public bool IsActive { get; set; } = false;
-        public bool IsVerified { get; set; } = false;
 
         public virtual ICollection<UserProfile>? UserProfiles { get; set; }
 
