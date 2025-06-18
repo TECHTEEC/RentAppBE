@@ -9,6 +9,7 @@ using RentAppBE.Models;
 using RentAppBE.Repositories.OtpService;
 using RentAppBE.Repositories.SenderService.EmailService;
 using RentAppBE.Repositories.TokenService;
+using RentAppBE.Shared.Services.ValidationService;
 using System;
 using System.Text;
 
@@ -24,6 +25,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IUserOtpService, UserOtpService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
+
 
 //-----------------------------------
 
@@ -180,6 +183,33 @@ using (var scope = app.Services.CreateScope())
                 ArabicMsg = "تمت العملية بنجاح",
                 EnglisMsg = "The operation was completed successfully"
             },
+                 new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "الايميل مطلوب",
+                EnglisMsg = "Email is required"
+            },
+                  new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "شكل الايميل خاطئ",
+                EnglisMsg = "Invalid email format"
+            },
+
+                  new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "الهاتف مطلوب",
+                EnglisMsg = "Phone number is required"
+            },
+                   new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "يجب أن يبدأ رقم الهاتف بـ +9639 ويتبعه 8 أرقام",
+                EnglisMsg = "Phone number must start with +9639 and be followed by 8 digits"
+            },
+
+
 
         });
 

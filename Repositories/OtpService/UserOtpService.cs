@@ -11,6 +11,7 @@ using RentAppBE.Repositories.SenderService;
 using RentAppBE.Repositories.TokenService;
 using RentAppBE.Repositories.TokenService.Dtos;
 using RentAppBE.Shared;
+using RentAppBE.Shared.Services.ValidationService;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -26,10 +27,12 @@ namespace RentAppBE.Repositories.OtpService
         private readonly IConfiguration _config;
         private readonly IEmailSender _sender;
         private readonly ITokenService _tokenService;
+        private readonly IValidationService _validationService;
+
         public UserOtpService(
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext dbContext,
-            IConfiguration config,
+            IConfiguration config, IValidationService validationService,
             IEmailSender sender, ITokenService tokenService)
         {
             _userManager = userManager;
@@ -37,6 +40,7 @@ namespace RentAppBE.Repositories.OtpService
             _config = config;
             _sender = sender;
             _tokenService = tokenService;
+            _validationService = validationService;
         }
 
         public async Task<GeneralResponse<object>> SendOtpAsync(string phoneOrEmail, LangEnum lang)
@@ -56,6 +60,7 @@ namespace RentAppBE.Repositories.OtpService
 
             if (isVendor && phoneOrEmail.Contains("@"))
             {
+
                 return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ? messages.FirstOrDefault(x => x.EnglisMsg == "You should send OTP to phone number")?.EnglisMsg :
                   messages.FirstOrDefault(x => x.EnglisMsg == "You should send OTP to phone number")?.ArabicMsg, null, 400);
             }
@@ -87,7 +92,9 @@ namespace RentAppBE.Repositories.OtpService
                     {
                         UserName = phoneOrEmail,
                         Email = phoneOrEmail.Contains("@") ? phoneOrEmail : null,
+                        EmailConfirmed = phoneOrEmail.Contains("@") ? true : false,
                         PhoneNumber = !phoneOrEmail.Contains("@") ? phoneOrEmail : null,
+                        PhoneNumberConfirmed = !phoneOrEmail.Contains("@") ? true : false,
                         CreatedAt = DateTime.UtcNow,
                         IsVendor = isVendor,
                         IsActive = true
@@ -109,6 +116,15 @@ namespace RentAppBE.Repositories.OtpService
 
         private async Task<GeneralResponse<object>> SendOtpByEmail(string phoneOrEmail, LangEnum lang)
         {
+
+            var (isEmailValid, emailError) = await _validationService.ValidateEmail(phoneOrEmail, lang);
+
+            if (!isEmailValid)
+            {
+                return new GeneralResponse<object>(false, emailError, false, 400);
+
+            }
+
 
             // Check for existing active OTP
             var activeOtp = await _dbContext.OtpRecords
@@ -182,6 +198,13 @@ namespace RentAppBE.Repositories.OtpService
 
         private async Task<GeneralResponse<object>> SendOtpBySMS(string phoneOrEmail, LangEnum lang)
         {
+            var (isPhoneValid, phoneError) = await _validationService.ValidatePhone(phoneOrEmail, lang);
+
+            if (!isPhoneValid)
+            {
+                return new GeneralResponse<object>(false, phoneError, false, 400);
+
+            }
             return new GeneralResponse<object>(true, "Test", true, 200);
         }
     }
