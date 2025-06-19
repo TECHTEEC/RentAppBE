@@ -150,7 +150,7 @@ namespace RentAppBE.Repositories.OtpService
                 await _dbContext.SaveChangesAsync();
 
                 var user = await _userManager.FindByEmailAsync(email);
-                
+
 
                 if (user == null)
                 {
@@ -276,6 +276,111 @@ namespace RentAppBE.Repositories.OtpService
 
             }
             return new GeneralResponse<object>(true, "Test", true, 200);
+        }
+
+        public async Task<GeneralResponse<TokenResultDto>> VerifyPhoneOtpAndEditAsync(string userId, string phone, string code, LangEnum lang, bool isVendor)
+        {
+            var messages = await _dbContext.UserMessages.ToListAsync();
+            var isPhoneValid = Utilities.IsValidWhatsAppNumber(phone);
+
+            if (isVendor && !isPhoneValid)
+            {
+
+                return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ? messages.FirstOrDefault(x => x.EnglisMsg == "You should send OTP to phone number")?.EnglisMsg :
+                  messages.FirstOrDefault(x => x.EnglisMsg == "You should send OTP to phone number")?.ArabicMsg, null, 400);
+            }
+
+            else
+            {
+
+
+                var otp = await _dbContext.OtpRecords
+                    .Where(o => o.PhoneOrEmail == phone && o.Code == code && !o.IsUsed && o.Expiry > DateTime.UtcNow)
+                    .FirstOrDefaultAsync();
+
+                if (otp == null)
+                {
+                    return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ?
+                        messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or expired OTP")?.EnglisMsg :
+                       messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or expired OTP")?.ArabicMsg, null, 400);
+                }
+
+                otp.IsUsed = true;
+                await _dbContext.SaveChangesAsync();
+
+                var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
+
+                if (user != null)
+                {
+                    user.PhoneNumber = phone;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    user.UpdatedBy = userId;
+
+                    var result = await _userManager.UpdateAsync(user);
+
+                    if (!result.Succeeded)
+                    {
+                        return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ?
+                        messages.FirstOrDefault(x => x.EnglisMsg == "Failed to update user")?.EnglisMsg :
+                       messages.FirstOrDefault(x => x.EnglisMsg == "Failed to update user")?.ArabicMsg, null, 400);
+                    }
+                }
+
+                return await _tokenService.CreateAccessToken(user, lang);
+            }
+        }
+
+        public async Task<GeneralResponse<TokenResultDto>> VerifyEmailOtpAndEditAsync(string userId, string email, string code, LangEnum lang, bool isVendor)
+        {
+            var messages = await _dbContext.UserMessages.ToListAsync();
+            var (isEmailValid, emailError) = await _validationService.ValidateEmail(email, lang);
+
+            if (!isEmailValid)
+            {
+
+                return new GeneralResponse<TokenResultDto>(false, emailError, null, 400);
+            }
+
+            else
+            {
+
+
+                var otp = await _dbContext.OtpRecords
+                    .Where(o => o.PhoneOrEmail == email && o.Code == code && !o.IsUsed && o.Expiry > DateTime.UtcNow)
+                    .FirstOrDefaultAsync();
+
+                if (otp == null)
+                {
+                    return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ?
+                        messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or expired OTP")?.EnglisMsg :
+                       messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or expired OTP")?.ArabicMsg, null, 400);
+                }
+
+                otp.IsUsed = true;
+                await _dbContext.SaveChangesAsync();
+
+                var user = await _userManager.FindByIdAsync(userId);
+
+
+                if (user != null)
+                {
+                    user.Email = email;
+                    user.NormalizedEmail = email.ToUpper();
+                    user.UpdatedBy = userId;
+                    user.UpdatedAt = DateTime.UtcNow;
+                    var result = await _userManager.UpdateAsync(user);
+
+                    if (!result.Succeeded)
+                    {
+                        return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ?
+                        messages.FirstOrDefault(x => x.EnglisMsg == "Failed to update user")?.EnglisMsg :
+                       messages.FirstOrDefault(x => x.EnglisMsg == "Failed to update user")?.ArabicMsg, null, 400);
+                    }
+                }
+
+                return await _tokenService.CreateAccessToken(user, lang);
+
+            }
         }
     }
 }

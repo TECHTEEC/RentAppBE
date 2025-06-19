@@ -237,7 +237,12 @@ using (var scope = app.Services.CreateScope())
                 EnglisMsg = "User Deactivated successfully"
             },
 
-
+               new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "فشل تعديل مستخدم",
+                EnglisMsg = "Failed to update user"
+            },
         });
 
         db.SaveChanges();

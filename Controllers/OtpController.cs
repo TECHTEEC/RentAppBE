@@ -36,13 +36,13 @@ namespace RentAppBE.Controllers
 
 
         [HttpGet("token-phone")]
-        public async Task<ActionResult> PhoneToken(string phone, string otp, bool isVendor, LangEnum lang = LangEnum.En)
+        public async Task<ActionResult> VerifyPhoneOtpAndRegisterAsync(string phone, string otp, bool isVendor, LangEnum lang = LangEnum.En)
         {
             return Ok(await _userOtpService.VerifyPhoneOtpAndRegisterAsync(phone, otp, lang, isVendor));
         }
 
         [HttpGet("token-email")]
-        public async Task<ActionResult> token(string email, string otp, bool isVendor, LangEnum lang = LangEnum.En)
+        public async Task<ActionResult> VerifyEmailOtpAndRegisterAsync(string email, string otp, bool isVendor, LangEnum lang = LangEnum.En)
         {
             return Ok(await _userOtpService.VerifyEmailOtpAndRegisterAsync(email, otp, lang, isVendor));
         }
@@ -60,6 +60,26 @@ namespace RentAppBE.Controllers
         {
             return Ok(await _tokenService.RevokeAccessToken(input, lang));
         }
+
+
+        [HttpGet("edit-phone")]
+        [Authorize]
+        public async Task<ActionResult> VerifyPhoneOtpAndEditAsync(string phone, string otp, bool isVendor, LangEnum lang = LangEnum.En)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return Ok(await _userOtpService.VerifyPhoneOtpAndEditAsync(userId, phone, otp, lang, isVendor));
+        }
+
+        [HttpGet("edit-email")]
+        [Authorize]
+        public async Task<ActionResult> VerifyEmailOtpAndEditAsync(string email, string otp, bool isVendor, LangEnum lang = LangEnum.En)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return Ok(await _userOtpService.VerifyEmailOtpAndEditAsync(userId, email, otp, lang, isVendor));
+        }
+
 
         //[Authorize]
         //[HttpGet("profile")]
