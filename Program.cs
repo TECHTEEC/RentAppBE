@@ -9,7 +9,7 @@ using RentAppBE.Models;
 using RentAppBE.Repositories.OtpService;
 using RentAppBE.Repositories.SenderService.EmailService;
 using RentAppBE.Repositories.TokenService;
-using RentAppBE.Services.UserProfileService;
+using RentAppBE.Repositories.UserProfileService;
 using RentAppBE.Shared.Services.ValidationService;
 using System;
 using System.Text;

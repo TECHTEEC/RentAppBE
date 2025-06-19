@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RentAppBE.Services.UserProfileService;
-using RentAppBE.Services.UserProfileService.Dtos.Request;
+using RentAppBE.Repositories.UserProfileService;
+using RentAppBE.Repositories.UserProfileService.Dtos.Request;
 
 namespace RentAppBE.Controllers
 {

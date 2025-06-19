@@ -1,8 +1,9 @@
 ﻿using RentAppBE.Helper.Enums;
+using RentAppBE.Shared;
 
-namespace RentAppBE.Services.UserProfileService.Dtos.Request
+namespace RentAppBE.Repositories.UserProfileService.Dtos.Request
 {
-	public class AddUserProfileRequest
+	public class AddUserProfileRequest : GeneralRequest
 	{
 		public string UserId { get; set; } = string.Empty;
 		public string FullName { get; set; } = string.Empty;

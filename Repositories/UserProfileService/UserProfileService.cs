@@ -1,10 +1,10 @@
 ﻿using RentAppBE.DataContext;
 using RentAppBE.Models;
-using RentAppBE.Services.UserProfileService.Dtos.Request;
-using RentAppBE.Services.UserProfileService.Dtos.Response;
+using RentAppBE.Repositories.UserProfileService.Dtos.Request;
+using RentAppBE.Repositories.UserProfileService.Dtos.Response;
 using RentAppBE.Shared;
 
-namespace RentAppBE.Services.UserProfileService
+namespace RentAppBE.Repositories.UserProfileService
 {
 	public class UserProfileService(ApplicationDbContext applicationDbContext) : IUserProfileService
 	{

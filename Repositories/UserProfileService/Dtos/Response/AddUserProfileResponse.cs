@@ -1,6 +1,6 @@
 ﻿using RentAppBE.Helper.Enums;
 
-namespace RentAppBE.Services.UserProfileService.Dtos.Response
+namespace RentAppBE.Repositories.UserProfileService.Dtos.Response
 {
 	public class AddUserProfileResponse
 	{
