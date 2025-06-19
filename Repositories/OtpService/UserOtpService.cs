@@ -95,7 +95,7 @@ namespace RentAppBE.Repositories.OtpService
                 {
                     user = new ApplicationUser
                     {
-                        UserName = null,
+                        UserName = phone,
                         Email = null,
                         EmailConfirmed = false,
                         PhoneNumber = phone,
@@ -150,13 +150,13 @@ namespace RentAppBE.Repositories.OtpService
                 await _dbContext.SaveChangesAsync();
 
                 var user = await _userManager.FindByEmailAsync(email);
-                ;
+                
 
                 if (user == null)
                 {
                     user = new ApplicationUser
                     {
-                        UserName = null,
+                        UserName = email,
                         Email = email,
                         EmailConfirmed = true,
                         PhoneNumber = null,

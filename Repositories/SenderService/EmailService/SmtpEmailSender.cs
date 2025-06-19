@@ -1,7 +1,10 @@
 ﻿
 using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
+
 
 namespace RentAppBE.Repositories.SenderService.EmailService
 {
@@ -14,31 +17,43 @@ namespace RentAppBE.Repositories.SenderService.EmailService
             _config = config;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string body)
+        public async Task SendEmailAsync(string toEmail, string subject, string bodyHtml)
         {
-            var smtpHost = _config["EmailSettings:Host"];
-            var smtpPort = int.Parse(_config["EmailSettings:Port"]);
-            var smtpUser = _config["EmailSettings:Username"];
-            var smtpPass = _config["EmailSettings:Password"];
+            var host = _config["EmailSettings:Host"];
+            var port = int.Parse(_config["EmailSettings:Port"]);
+            var username = _config["EmailSettings:Username"];
+            var password = _config["EmailSettings:Password"];
             var fromEmail = _config["EmailSettings:FromEmail"];
+            var fromName = _config["EmailSettings:FromName"];
 
-            using var client = new SmtpClient(smtpHost, smtpPort)
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(fromName, fromEmail));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = subject;
+
+            var builder = new BodyBuilder { HtmlBody = bodyHtml };
+            message.Body = builder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+
+            try
             {
-                Credentials = new NetworkCredential(smtpUser, smtpPass),
-                EnableSsl = true,
-                UseDefaultCredentials = false
+                // ✅ Use SslOnConnect for port 465
+                smtp.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
 
-            };
-
-            using var message = new MailMessage(fromEmail, toEmail, subject, body)
+                await smtp.ConnectAsync(host, port, SecureSocketOptions.SslOnConnect);
+                await smtp.AuthenticateAsync(username, password);
+                await smtp.SendAsync(message);
+            }
+            catch (Exception ex)
             {
-                IsBodyHtml = true
-            };
-
-            await client.SendMailAsync(message);
-
-
+                Console.WriteLine("MailKit error: " + ex.Message);
+                throw;
+            }
+            finally
+            {
+                await smtp.DisconnectAsync(true);
+            }
         }
-
     }
 }
