@@ -4,4 +4,9 @@
     {
         En, Ar
     }
+
+    public enum ThemeEnum
+    {
+		Light, Dark, System
+	}
 }
