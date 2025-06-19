@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RentAppBE.DataContext;
+using RentAppBE.Helper;
 using RentAppBE.Helper.Enums;
 using RentAppBE.Models;
 using RentAppBE.Repositories.OtpService.Dtos;
@@ -43,22 +44,27 @@ namespace RentAppBE.Repositories.OtpService
             _validationService = validationService;
         }
 
-        public async Task<GeneralResponse<object>> SendOtpAsync(string phoneOrEmail, LangEnum lang)
+        public async Task<GeneralResponse<object>> SendPhoneOtpAsync(string phone, LangEnum lang)
         {
-            if (!string.IsNullOrEmpty(phoneOrEmail) && phoneOrEmail.Contains("@"))
-            {
-                return await SendOtpByEmail(phoneOrEmail, lang);
-            }
 
-            return await SendOtpBySMS(phoneOrEmail, lang);
+            return await SendOtpBySMS(phone, lang);
 
         }
 
-        public async Task<GeneralResponse<TokenResultDto>> VerifyOtpAndRegisterAsync(string phoneOrEmail, string code, LangEnum lang, bool isVendor)
+        public async Task<GeneralResponse<object>> SendEmailOtpAsync(string email, LangEnum lang)
+        {
+
+
+            return await SendOtpByEmail(email, lang);
+
+        }
+
+        public async Task<GeneralResponse<TokenResultDto>> VerifyPhoneOtpAndRegisterAsync(string phone, string code, LangEnum lang, bool isVendor)
         {
             var messages = await _dbContext.UserMessages.ToListAsync();
+            var isPhoneValid = Utilities.IsValidWhatsAppNumber(phone);
 
-            if (isVendor && phoneOrEmail.Contains("@"))
+            if (isVendor && !isPhoneValid)
             {
 
                 return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ? messages.FirstOrDefault(x => x.EnglisMsg == "You should send OTP to phone number")?.EnglisMsg :
@@ -70,7 +76,7 @@ namespace RentAppBE.Repositories.OtpService
 
 
                 var otp = await _dbContext.OtpRecords
-                    .Where(o => o.PhoneOrEmail == phoneOrEmail && o.Code == code && !o.IsUsed && o.Expiry > DateTime.UtcNow)
+                    .Where(o => o.PhoneOrEmail == phone && o.Code == code && !o.IsUsed && o.Expiry > DateTime.UtcNow)
                     .FirstOrDefaultAsync();
 
                 if (otp == null)
@@ -83,21 +89,21 @@ namespace RentAppBE.Repositories.OtpService
                 otp.IsUsed = true;
                 await _dbContext.SaveChangesAsync();
 
-                var user = await _userManager.FindByEmailAsync(phoneOrEmail)
-                           ?? await _dbContext.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phoneOrEmail);
+                var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.PhoneNumber == phone);
 
                 if (user == null)
                 {
                     user = new ApplicationUser
                     {
-                        UserName = phoneOrEmail,
-                        Email = phoneOrEmail.Contains("@") ? phoneOrEmail : null,
-                        EmailConfirmed = phoneOrEmail.Contains("@") ? true : false,
-                        PhoneNumber = !phoneOrEmail.Contains("@") ? phoneOrEmail : null,
-                        PhoneNumberConfirmed = !phoneOrEmail.Contains("@") ? true : false,
+                        UserName = null,
+                        Email = null,
+                        EmailConfirmed = false,
+                        PhoneNumber = phone,
+                        PhoneNumberConfirmed = true,
                         CreatedAt = DateTime.UtcNow,
                         IsVendor = isVendor,
-                        IsActive = true
+                        IsActive = true,
+                        IsVerified = false,
                     };
 
                     var result = await _userManager.CreateAsync(user);
@@ -114,10 +120,71 @@ namespace RentAppBE.Repositories.OtpService
             }
         }
 
-        private async Task<GeneralResponse<object>> SendOtpByEmail(string phoneOrEmail, LangEnum lang)
+        public async Task<GeneralResponse<TokenResultDto>> VerifyEmailOtpAndRegisterAsync(string email, string code, LangEnum lang, bool isVendor)
+        {
+            var messages = await _dbContext.UserMessages.ToListAsync();
+            var (isEmailValid, emailError) = await _validationService.ValidateEmail(email, lang);
+
+            if (!isEmailValid)
+            {
+
+                return new GeneralResponse<TokenResultDto>(false, emailError, null, 400);
+            }
+
+            else
+            {
+
+
+                var otp = await _dbContext.OtpRecords
+                    .Where(o => o.PhoneOrEmail == email && o.Code == code && !o.IsUsed && o.Expiry > DateTime.UtcNow)
+                    .FirstOrDefaultAsync();
+
+                if (otp == null)
+                {
+                    return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ?
+                        messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or expired OTP")?.EnglisMsg :
+                       messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or expired OTP")?.ArabicMsg, null, 400);
+                }
+
+                otp.IsUsed = true;
+                await _dbContext.SaveChangesAsync();
+
+                var user = await _userManager.FindByEmailAsync(email);
+                ;
+
+                if (user == null)
+                {
+                    user = new ApplicationUser
+                    {
+                        UserName = null,
+                        Email = email,
+                        EmailConfirmed = true,
+                        PhoneNumber = null,
+                        PhoneNumberConfirmed = false,
+                        CreatedAt = DateTime.UtcNow,
+                        IsVendor = isVendor,
+                        IsActive = true,
+                        IsVerified = false,
+                    };
+
+                    var result = await _userManager.CreateAsync(user);
+
+                    if (!result.Succeeded)
+                    {
+                        return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ?
+                        messages.FirstOrDefault(x => x.EnglisMsg == "Failed to create user")?.EnglisMsg :
+                       messages.FirstOrDefault(x => x.EnglisMsg == "Failed to create user")?.ArabicMsg, null, 400);
+                    }
+                }
+
+                return await _tokenService.CreateAccessToken(user, lang);
+            }
+        }
+
+        private async Task<GeneralResponse<object>> SendOtpByEmail(string email, LangEnum lang)
         {
 
-            var (isEmailValid, emailError) = await _validationService.ValidateEmail(phoneOrEmail, lang);
+            var (isEmailValid, emailError) = await _validationService.ValidateEmail(email, lang);
 
             if (!isEmailValid)
             {
@@ -128,7 +195,7 @@ namespace RentAppBE.Repositories.OtpService
 
             // Check for existing active OTP
             var activeOtp = await _dbContext.OtpRecords
-                .Where(o => o.PhoneOrEmail == phoneOrEmail && !o.IsUsed && o.Expiry > DateTime.UtcNow)
+                .Where(o => o.PhoneOrEmail == email && !o.IsUsed && o.Expiry > DateTime.UtcNow)
                 .OrderByDescending(o => o.CreatedAt)
                 .FirstOrDefaultAsync();
 
@@ -155,7 +222,7 @@ namespace RentAppBE.Repositories.OtpService
                 await _dbContext.SaveChangesAsync();
 
 
-                await _sender.SendEmailAsync(phoneOrEmail,
+                await _sender.SendEmailAsync(email,
                    lang == LangEnum.En ? $"{Messages.FirstOrDefault(x => x.EnglisMsg == "OTP has been sent")?.EnglisMsg} {activeOtp.Code}" :
                    $"{Messages.FirstOrDefault(x => x.EnglisMsg == "OTP has been sent")?.ArabicMsg} {activeOtp.Code}",
                    lang == LangEnum.En ? $"{Messages.FirstOrDefault(x => x.EnglisMsg == "Your OTP is:")?.EnglisMsg} {activeOtp.Code}" :
@@ -172,7 +239,7 @@ namespace RentAppBE.Repositories.OtpService
 
             var otp = new OtpRecord
             {
-                PhoneOrEmail = phoneOrEmail,
+                PhoneOrEmail = email,
                 Code = newOtpCode,
                 Expiry = DateTime.UtcNow.AddMinutes(5),
                 IsUsed = false,
@@ -183,7 +250,7 @@ namespace RentAppBE.Repositories.OtpService
             _dbContext.OtpRecords.Add(otp);
             await _dbContext.SaveChangesAsync();
 
-            await _sender.SendEmailAsync(phoneOrEmail,
+            await _sender.SendEmailAsync(email,
                               lang == LangEnum.En ? $"{Messages.FirstOrDefault(x => x.EnglisMsg == "OTP has been sent")?.EnglisMsg} {newOtpCode}" :
                               $"{Messages.FirstOrDefault(x => x.EnglisMsg == "OTP has been sent")?.ArabicMsg} {newOtpCode}",
                               lang == LangEnum.En ? $"{Messages.FirstOrDefault(x => x.EnglisMsg == "Your OTP is:")?.EnglisMsg} {newOtpCode}" :
@@ -196,13 +263,16 @@ namespace RentAppBE.Repositories.OtpService
 
         }
 
-        private async Task<GeneralResponse<object>> SendOtpBySMS(string phoneOrEmail, LangEnum lang)
+        private async Task<GeneralResponse<object>> SendOtpBySMS(string phone, LangEnum lang)
         {
-            var (isPhoneValid, phoneError) = await _validationService.ValidatePhone(phoneOrEmail, lang);
+            var isPhoneValid = Utilities.IsValidWhatsAppNumber(phone);
+            var messages = await _dbContext.UserMessages.ToListAsync();
 
             if (!isPhoneValid)
             {
-                return new GeneralResponse<object>(false, phoneError, false, 400);
+                return new GeneralResponse<object>(false, lang == LangEnum.En ?
+                    messages?.FirstOrDefault(x => x.EnglisMsg == "Phone number must start with +9639 and be followed by 8 digits")?.EnglisMsg :
+                  messages?.FirstOrDefault(x => x.EnglisMsg == "Phone number must start with +9639 and be followed by 8 digits")?.ArabicMsg, false, 400);
 
             }
             return new GeneralResponse<object>(true, "Test", true, 200);

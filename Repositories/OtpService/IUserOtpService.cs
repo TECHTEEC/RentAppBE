@@ -7,7 +7,10 @@ namespace RentAppBE.Repositories.OtpService
 {
     public interface IUserOtpService
     {
-        Task<GeneralResponse<object>> SendOtpAsync(string phoneOrEmail, LangEnum lang);
-        Task<GeneralResponse<TokenResultDto>> VerifyOtpAndRegisterAsync(string phoneOrEmail, string code, LangEnum lang, bool isVendor);
+        Task<GeneralResponse<object>> SendPhoneOtpAsync(string phone, LangEnum lang);
+        Task<GeneralResponse<object>> SendEmailOtpAsync(string email, LangEnum lang);
+        Task<GeneralResponse<TokenResultDto>> VerifyPhoneOtpAndRegisterAsync(string phone, string code, LangEnum lang, bool isVendor);
+        Task<GeneralResponse<TokenResultDto>> VerifyEmailOtpAndRegisterAsync(string email, string code, LangEnum lang, bool isVendor);
+
     }
 }

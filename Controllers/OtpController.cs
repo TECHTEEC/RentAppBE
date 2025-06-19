@@ -22,18 +22,31 @@ namespace RentAppBE.Controllers
             _tokenService = tokenService;
         }
 
-        [HttpGet("GetOtp")]
-        public async Task<ActionResult> GetOtp(string phoneOrEmail, LangEnum lang = LangEnum.En)
+        [HttpGet("GetPhoneOtp")]
+        public async Task<ActionResult> GetPhoneOtp(string phone, LangEnum lang = LangEnum.En)
         {
-            return Ok(await _userOtpService.SendOtpAsync(phoneOrEmail, lang));
+            return Ok(await _userOtpService.SendPhoneOtpAsync(phone, lang));
+        }
+
+        [HttpGet("GetEmailOtp")]
+        public async Task<ActionResult> GetEmailOtp(string email, LangEnum lang = LangEnum.En)
+        {
+            return Ok(await _userOtpService.SendEmailOtpAsync(email, lang));
         }
 
 
-        [HttpGet("token")]
-        public async Task<ActionResult> token(string phoneOrEmail, string otp, bool isVendor, LangEnum lang = LangEnum.En)
+        [HttpGet("token-phone")]
+        public async Task<ActionResult> PhoneToken(string phone, string otp, bool isVendor, LangEnum lang = LangEnum.En)
         {
-            return Ok(await _userOtpService.VerifyOtpAndRegisterAsync(phoneOrEmail, otp, lang, isVendor));
+            return Ok(await _userOtpService.VerifyPhoneOtpAndRegisterAsync(phone, otp, lang, isVendor));
         }
+
+        [HttpGet("token-email")]
+        public async Task<ActionResult> token(string email, string otp, bool isVendor, LangEnum lang = LangEnum.En)
+        {
+            return Ok(await _userOtpService.VerifyEmailOtpAndRegisterAsync(email, otp, lang, isVendor));
+        }
+
 
         [HttpPost("refresh-token")]
         public async Task<ActionResult> RefreshToken(LogoutRequest input, LangEnum lang)
