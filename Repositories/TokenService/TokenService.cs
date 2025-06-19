@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RentAppBE.DataContext;
@@ -85,5 +86,64 @@ namespace RentAppBE.Repositories.TokenService
 
         }
 
+        public async Task<GeneralResponse<TokenResultDto>> CreateRefreshAccessToken(LogoutRequest input, LangEnum lang)
+        {
+            var token = await _dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == input.RefreshToken && !t.IsRevoked);
+            var messages = await _dbContext.UserMessages.ToListAsync();
+
+            if (token == null || token.Expires < DateTime.UtcNow)
+            {
+                return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ?
+                   messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or already revoked refresh token")?.EnglisMsg :
+                   messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or already revoked refresh token")?.ArabicMsg, null, 400);
+            }
+
+            // Proceed to issue new access + refresh tokens
+
+            var user = await _userManager.FindByIdAsync(token.UserId);
+
+            if (user == null)
+            {
+                return new GeneralResponse<TokenResultDto>(false, lang == LangEnum.En ?
+                   messages.FirstOrDefault(x => x.EnglisMsg == "Invalid User")?.EnglisMsg :
+                   messages.FirstOrDefault(x => x.EnglisMsg == "Invalid User")?.ArabicMsg, null, 400);
+            }
+
+            return await CreateAccessToken(user, lang);
+
+        }
+
+        public async Task<GeneralResponse<bool>> RevokeAccessToken(LogoutRequest input, LangEnum lang)
+        {
+            var messages = await _dbContext.UserMessages.ToListAsync();
+
+            var token = await _dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == input.RefreshToken && !t.IsRevoked);
+
+            if (token == null)
+            {
+                return new GeneralResponse<bool>(false, lang == LangEnum.En ?
+                    messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or already revoked refresh token")?.EnglisMsg :
+                    messages.FirstOrDefault(x => x.EnglisMsg == "Invalid or already revoked refresh token")?.ArabicMsg, false, 400);
+            }
+
+
+            token.IsRevoked = true;
+            await _dbContext.SaveChangesAsync();
+
+            return new GeneralResponse<bool>(true, lang == LangEnum.En ?
+                   messages.FirstOrDefault(x => x.EnglisMsg == "Logged out successfully")?.EnglisMsg :
+                   messages.FirstOrDefault(x => x.EnglisMsg == "Logged out successfully")?.ArabicMsg, true, 200);
+        }
+
+        public async Task<GeneralResponse<object>> TokenProfile(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user is null)
+                return new GeneralResponse<object>(false, "User Invalid", null, 400);
+
+
+            return new GeneralResponse<object>(true, "Test", new { user.UserName, user.Email }, 200);
+        }
     }
 }
