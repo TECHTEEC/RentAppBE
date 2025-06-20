@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Folder Include="Middlewares\" />
+    <Folder Include="Repositories\AccountService\Dtos\" />
     <Folder Include="Repositories\SenderService\Dtos\" />
     <Folder Include="Repositories\SenderService\SmsService\" />
   </ItemGroup>

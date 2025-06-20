@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RentAppBE.DataContext;
 using RentAppBE.Models;
+using RentAppBE.Repositories.AccountService;
 using RentAppBE.Repositories.FilesHandleService;
 using RentAppBE.Repositories.OtpService;
 using RentAppBE.Repositories.SenderService.EmailService;
@@ -28,6 +29,7 @@ builder.Services.AddScoped<IUserOtpService, UserOtpService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IFilesHandleService, FilesHandleService>();
 
 
@@ -199,6 +201,50 @@ using (var scope = app.Services.CreateScope())
 				EnglisMsg = "Invalid email format"
 			},
 
+                  new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "الهاتف مطلوب",
+                EnglisMsg = "Phone number is required"
+            },
+                   new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "يجب أن يبدأ رقم الهاتف بـ +9639 ويتبعه 8 أرقام",
+                EnglisMsg = "Phone number must start with +9639 and be followed by 8 digits"
+            },
+                  new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "التوكين غير صالح",
+                EnglisMsg = "Invalid or already revoked refresh token"
+            },
+                 new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "تم نسجيل الخروج بنجاح",
+                EnglisMsg = "Logged out successfully"
+            },
+                 new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "مسنخدم عير صحيح",
+                EnglisMsg = "Invalid User"
+            },
+                new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "تم ايقاف المستخدم",
+                EnglisMsg = "User Deactivated successfully"
+            },
+
+               new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "فشل تعديل مستخدم",
+                EnglisMsg = "Failed to update user"
+            },
+        });
 				  new UserMessage
 			{
 				Id = Guid.NewGuid(),
