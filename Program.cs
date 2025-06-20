@@ -244,7 +244,6 @@ using (var scope = app.Services.CreateScope())
                 ArabicMsg = "فشل تعديل مستخدم",
                 EnglisMsg = "Failed to update user"
             },
-        });
 				  new UserMessage
 			{
 				Id = Guid.NewGuid(),
