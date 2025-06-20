@@ -278,7 +278,7 @@ namespace RentAppBE.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OtpRecords");
+                    b.ToTable("OtpRecords", (string)null);
                 });
 
             modelBuilder.Entity("RentAppBE.Models.RefreshToken", b =>
@@ -308,7 +308,7 @@ namespace RentAppBE.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("RentAppBE.Models.UserMessage", b =>
@@ -327,7 +327,7 @@ namespace RentAppBE.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserMessages");
+                    b.ToTable("UserMessages", (string)null);
                 });
 
             modelBuilder.Entity("RentAppBE.Models.UserProfile", b =>
@@ -412,7 +412,7 @@ namespace RentAppBE.Migrations
                         .IsUnique()
                         .HasFilter("[WhatsAppNumber] IS NOT NULL");
 
-                    b.ToTable("UserProfiles");
+                    b.ToTable("UserProfiles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
