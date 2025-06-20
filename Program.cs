@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RentAppBE.DataContext;
 using RentAppBE.Models;
+using RentAppBE.Repositories.AccountService;
 using RentAppBE.Repositories.OtpService;
 using RentAppBE.Repositories.SenderService.EmailService;
 using RentAppBE.Repositories.TokenService;
@@ -28,6 +29,7 @@ builder.Services.AddScoped<IUserOtpService, UserOtpService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 
 //-----------------------------------
@@ -228,9 +230,19 @@ using (var scope = app.Services.CreateScope())
                 ArabicMsg = "مسنخدم عير صحيح",
                 EnglisMsg = "Invalid User"
             },
+                new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "تم ايقاف المستخدم",
+                EnglisMsg = "User Deactivated successfully"
+            },
 
-
-
+               new UserMessage
+            {
+                Id = Guid.NewGuid(),
+                ArabicMsg = "فشل تعديل مستخدم",
+                EnglisMsg = "Failed to update user"
+            },
         });
 
         db.SaveChanges();
