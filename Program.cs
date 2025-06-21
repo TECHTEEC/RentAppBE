@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using RentAppBE.DataContext;
 using RentAppBE.Models;
 using RentAppBE.Repositories.AccountService;
+using RentAppBE.Repositories.AdminService;
 using RentAppBE.Repositories.FilesHandleService;
 using RentAppBE.Repositories.OtpService;
 using RentAppBE.Repositories.SenderService.EmailService;
@@ -31,6 +32,7 @@ builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IFilesHandleService, FilesHandleService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 
 //-----------------------------------
@@ -358,11 +360,76 @@ using (var scope = app.Services.CreateScope())
 				ArabicMsg = "معرف الملف الشخصي ID غير صالح",
 				EnglisMsg = "Invalid profile ID"
 			},
-
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "عنوان البريد الإلكتروني غير صالح",
+				EnglisMsg = "Invalid email address"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "اسم المستخدم أو البريد الإلكتروني غير صالح",
+				EnglisMsg = "Invalid username or email"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "المستخدم ليس مسؤولاً",
+				EnglisMsg = "User is not an admin"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "كلمة المرور أو المستخدم غير صحيحة",
+				EnglisMsg = "Invalid username or password"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "تم تسجيل الدخول بنجاح",
+				EnglisMsg = "Login successfully"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "تم استعادة المسؤولين بنجاح",
+				EnglisMsg = "Admins restored successfully"
+			}
 		});
-
-		db.SaveChanges();
 	}
+
+
+	// seeding roles
+	if (!db.Roles.Any())
+	{
+		db.Roles.AddRange(new[]
+		{
+			new IdentityRole
+			{
+				Id = Guid.NewGuid().ToString(),
+				Name ="SuperUser",
+				NormalizedName = "SUPERUSER",
+				ConcurrencyStamp = "3f4b1e8b-6aaf-4c73-aafe-d22e68f4e27a"
+			},
+			new IdentityRole
+			{
+				Id = Guid.NewGuid().ToString(),
+				Name ="Admin",
+				NormalizedName = "ADMIN",
+				ConcurrencyStamp = "9d93f5b2-17c4-4f6c-b89a-e8d36e68dcd9"
+			},
+			new IdentityRole
+			{
+				Id = Guid.NewGuid().ToString(),
+				Name ="Renter",
+				NormalizedName = "RENTER",
+				ConcurrencyStamp = "b85e6de1-4e3a-4ec2-a3b6-45c64988e0d2"
+			}
+		});
+	}
+
+	db.SaveChanges();
 }
 
 // Configure the HTTP request pipeline.
