@@ -28,7 +28,15 @@ namespace RentAppBE.DataContext
 			modelBuilder.Entity<ApplicationUser>().HasQueryFilter(h => !h.IsDeleted);
 
 			modelBuilder.Entity<UserProfile>()
+				.HasIndex(u => u.UserId)
+				.IsUnique();
+
+			modelBuilder.Entity<UserProfile>()
 				.HasIndex(u => u.WhatsAppNumber)
+				.IsUnique();
+
+			modelBuilder.Entity<UserProfile>()
+				.HasIndex(u => u.IBAN)
 				.IsUnique();
 		}
 	}

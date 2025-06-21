@@ -1,4 +1,7 @@
-﻿using SixLabors.ImageSharp;
+﻿using System.Text;
+using System.Drawing.Imaging;
+using System.Drawing;
+
 
 namespace RentAppBE.Repositories.FilesHandleService
 {
@@ -20,6 +23,7 @@ namespace RentAppBE.Repositories.FilesHandleService
 			var extension = Path.GetExtension(fileName).ToLowerInvariant();
 			return _configuration.GetSection("AllowedImageExtensions").Get<string[]>()!.Contains(extension);
 		}
+
 		public async Task<bool> IsValidImageContent(IFormFile file)
 		{
 			using var stream = file.OpenReadStream();
@@ -37,19 +41,9 @@ namespace RentAppBE.Repositories.FilesHandleService
 
 			return signatures.Any(signature => headerBytes.Take(signature.Length).SequenceEqual(signature));
 		}
+
 		public bool IsValidImageSize(long fileSize) => fileSize <= _configuration.GetSection("MaxImageSizeInBytes").Get<double>()!;
-		public async Task<bool> IsValidImage(IFormFile file)
-		{
-			try
-			{
-				using var image = await Image.LoadAsync(file.OpenReadStream());
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
+
 		public async Task<string> SaveImage(IFormFile image, string folderPath)
 		{
 			if (image == null || image.Length == 0)
@@ -62,19 +56,27 @@ namespace RentAppBE.Repositories.FilesHandleService
 			if (!Directory.Exists(fullFolderPath))
 				Directory.CreateDirectory(fullFolderPath);
 
-			// Generate unique file name using current timestamp
 			var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmssfff");
 			var sanitizedFileName = Path.GetFileNameWithoutExtension(image.FileName);
 			var uniqueFileName = $"{sanitizedFileName}_{timestamp}{extension}";
 
 			var fullFilePath = Path.Combine(fullFolderPath, uniqueFileName);
 
-			using (var stream = new FileStream(fullFilePath, FileMode.Create))
+			using (var memoryStream = new MemoryStream())
 			{
-				await image.CopyToAsync(stream);
+				await image.CopyToAsync(memoryStream);
+
+				// image compression 
+				using (var originalImage = Image.FromStream(memoryStream))
+				{
+					var jpegEncoder = ImageCodecInfo.GetImageDecoders().FirstOrDefault(c => c.FormatID == ImageFormat.Jpeg.Guid);
+					var encoderParameters = new EncoderParameters(1);
+					encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 50L); // Compression quality (0-100)
+
+					originalImage.Save(fullFilePath, jpegEncoder, encoderParameters);
+				}
 			}
 
-			// Return the relative path for use in APIs or front-end (e.g., "Images/UserProfile/filename.jpg")
 			return Path.Combine(folderPath, uniqueFileName).Replace("\\", "/");
 		}
 	}

@@ -5,7 +5,6 @@
 		bool IsValidImageExtension(string fileName);
 		Task<bool> IsValidImageContent(IFormFile file);
 		bool IsValidImageSize(long fileSize);
-		Task<bool> IsValidImage(IFormFile file);
 		Task<string> SaveImage(IFormFile image, string folderPath);
 	}
 }

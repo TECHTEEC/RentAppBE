@@ -16,9 +16,9 @@ namespace RentAppBE.Repositories.UserProfileService
 		private readonly IFilesHandleService _filesHandleService = filesHandleService;
 
 
-		public async Task<GeneralResponse<UserProfileResponse>> GetUserProfileAsync(UserProfileRequest request)
+		public async Task<GeneralResponse<UserProfileResponse>> GetUserProfileAsync(string userId, UserProfileRequest request)
 		{
-			var user = await _db.Users.FindAsync(request.UserId);
+			var user = await _db.Users.FindAsync(userId);
 
 			if (user is null)
 			{
@@ -33,7 +33,7 @@ namespace RentAppBE.Repositories.UserProfileService
 
 			var userProfile = await _db.UserProfiles
 				.Include(e => e.ApplicationUser)
-				.SingleOrDefaultAsync(e => e.UserId == request.UserId);
+				.SingleOrDefaultAsync(e => e.UserId == userId);
 
 			if (userProfile is null)
 			{
@@ -71,7 +71,7 @@ namespace RentAppBE.Repositories.UserProfileService
 			var successMessage = Utilities.GetErrorMessagesAsync(_db, "User profile restored successfully").Result;
 
 			return new GeneralResponse<UserProfileResponse>(
-				false,
+				true,
 				request.lang == LangEnum.En ? successMessage.English : successMessage.Arabic,
 				userProfileResponse,
 				StatusCodes.Status200OK);
@@ -129,17 +129,6 @@ namespace RentAppBE.Repositories.UserProfileService
 						null,
 						StatusCodes.Status400BadRequest);
 				}
-
-				if (!await filesHandleService.IsValidImage(request.ProfilePhoto))
-				{
-					var errorMessage = Utilities.GetErrorMessagesAsync(_db, "Invalid image").Result;
-
-					return new GeneralResponse<AddInitialUserProfileResponse>(
-						false,
-						request.lang == LangEnum.En ? errorMessage.English : errorMessage.Arabic,
-						null,
-						StatusCodes.Status400BadRequest);
-				}
 			}
 
 			var userProfile = new UserProfile
@@ -172,6 +161,20 @@ namespace RentAppBE.Repositories.UserProfileService
 
 		public async Task<GeneralResponse<UpdateUserProfileResponse>> UpdateUserProfileAsync(string userId, UpdateUserProfileRequest request)
 		{
+
+			var isProfileExists = await _db.UserProfiles.AnyAsync(e => e.Id == request.Id);
+
+			if (!isProfileExists)
+			{
+				var errorMessage = Utilities.GetErrorMessagesAsync(_db, "Invalid profile ID").Result;
+
+				return new GeneralResponse<UpdateUserProfileResponse>(
+					false,
+					request.lang == LangEnum.En ? errorMessage.English : errorMessage.Arabic,
+					null,
+					StatusCodes.Status400BadRequest);
+			}
+
 			// validate user profile image
 
 			if (request.ProfilePhoto is not null)
@@ -201,17 +204,6 @@ namespace RentAppBE.Repositories.UserProfileService
 				if (!await filesHandleService.IsValidImageContent(request.ProfilePhoto))
 				{
 					var errorMessage = Utilities.GetErrorMessagesAsync(_db, "Invalid image content").Result;
-
-					return new GeneralResponse<UpdateUserProfileResponse>(
-						false,
-						request.lang == LangEnum.En ? errorMessage.English : errorMessage.Arabic,
-						null,
-						StatusCodes.Status400BadRequest);
-				}
-
-				if (!await filesHandleService.IsValidImage(request.ProfilePhoto))
-				{
-					var errorMessage = Utilities.GetErrorMessagesAsync(_db, "Invalid image").Result;
 
 					return new GeneralResponse<UpdateUserProfileResponse>(
 						false,
@@ -262,6 +254,19 @@ namespace RentAppBE.Repositories.UserProfileService
 					StatusCodes.Status400BadRequest);
 			}
 
+			var isDuplicateIBAN = await _db.UserProfiles.AnyAsync(u => u.IBAN == request.IBAN && u.UserId != userId);
+
+			if (isDuplicateIBAN)
+			{
+				var errorMessage = Utilities.GetErrorMessagesAsync(_db, "IBAN already in use").Result;
+
+				return new GeneralResponse<UpdateUserProfileResponse>(
+					false,
+					request.lang == LangEnum.En ? errorMessage.English : errorMessage.Arabic,
+					null,
+					StatusCodes.Status400BadRequest);
+			}
+
 			var userProfile = new UserProfile
 			{
 				Id = request.Id,
@@ -285,6 +290,8 @@ namespace RentAppBE.Repositories.UserProfileService
 
 			var userUpdatedResponse = new UpdateUserProfileResponse
 			{
+				Id = userProfile.Id,
+				UserId = Guid.Parse(userId),
 				FullName = userProfile.FullName,
 				About = userProfile.About,
 				Address = userProfile.Address,
