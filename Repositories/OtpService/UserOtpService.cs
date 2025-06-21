@@ -96,7 +96,7 @@ namespace RentAppBE.Repositories.OtpService
                     isNewRegister = true;
                     user = new ApplicationUser
                     {
-                        UserName = Guid.Empty.ToString(),
+                        UserName = Guid.Empty.ToString() + "_" + Guid.NewGuid().ToString(),
                         Email = null,
                         EmailConfirmed = false,
                         PhoneNumber = phone,
@@ -119,7 +119,7 @@ namespace RentAppBE.Repositories.OtpService
 
                 var auth = await _tokenService.CreateAccessToken(user, lang);
                 auth.Data.UserId = user.Id;
-                auth.Data.UserName = user.UserName == Guid.Empty.ToString() ? null : user.UserName;
+                auth.Data.UserName = user.UserName.Contains(Guid.Empty.ToString()) ? null : user.UserName;
                 auth.Data.PhoneNumber = user.PhoneNumber;
                 auth.Data.Email = user.Email;
                 auth.Data.VerifiedStatus = null;
@@ -168,7 +168,7 @@ namespace RentAppBE.Repositories.OtpService
 
                     user = new ApplicationUser
                     {
-                        UserName = Guid.Empty.ToString(),
+                        UserName = Guid.Empty.ToString() + "_" + Guid.NewGuid().ToString(),
                         Email = email,
                         EmailConfirmed = true,
                         PhoneNumber = null,
@@ -191,7 +191,7 @@ namespace RentAppBE.Repositories.OtpService
 
                 var auth = await _tokenService.CreateAccessToken(user, lang);
                 auth.Data.UserId = user.Id;
-                auth.Data.UserName = user.UserName == Guid.Empty.ToString() ? null : user.UserName;
+                auth.Data.UserName = user.UserName.Contains(Guid.Empty.ToString()) ? null : user.UserName;
                 auth.Data.PhoneNumber = user.PhoneNumber;
                 auth.Data.Email = user.Email;
                 auth.Data.VerifiedStatus = null;
@@ -345,7 +345,7 @@ namespace RentAppBE.Repositories.OtpService
 
                 var auth = await _tokenService.CreateAccessToken(user, lang);
                 auth.Data.UserId = user.Id;
-                auth.Data.UserName = user.UserName == Guid.Empty.ToString() ? null : user.UserName;
+                auth.Data.UserName = user.UserName.Contains(Guid.Empty.ToString()) ? null : user.UserName;
                 auth.Data.PhoneNumber = user.PhoneNumber;
                 auth.Data.Email = user.Email;
                 auth.Data.VerifiedStatus = null;
@@ -404,7 +404,7 @@ namespace RentAppBE.Repositories.OtpService
 
                 var auth = await _tokenService.CreateAccessToken(user, lang);
                 auth.Data.UserId = user.Id;
-                auth.Data.UserName = user.UserName == Guid.Empty.ToString() ? null : user.UserName;
+                auth.Data.UserName = user.UserName.Contains(Guid.Empty.ToString()) ? null : user.UserName;
                 auth.Data.PhoneNumber = user.PhoneNumber;
                 auth.Data.Email = user.Email;
                 auth.Data.VerifiedStatus = null;
