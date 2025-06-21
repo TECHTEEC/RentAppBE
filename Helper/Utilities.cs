@@ -25,6 +25,7 @@ namespace RentAppBE.Helper
 			// WhatsApp typically supports numbers from 10 to 15 digits
 			return cleanedNumber.Length >= 10 && cleanedNumber.Length <= 15;
 		}
+
 		public static bool IsValidIBAN(string iban)
 		{
 			if (string.IsNullOrWhiteSpace(iban))
@@ -60,11 +61,12 @@ namespace RentAppBE.Helper
 
 			return mod == 1;
 		}
+
 		public static async Task<ErrorMessage> GetErrorMessagesAsync(ApplicationDbContext db, string englishErrorMessage)
 		{
 			var errorMessage = new ErrorMessage();
 
-			var message = await db.UserMessages.SingleOrDefaultAsync(e => e.EnglisMsg == englishErrorMessage);
+			var message = await db.UserMessages.SingleOrDefaultAsync(e => e.EnglisMsg.Trim().ToLower() == englishErrorMessage.Trim().ToLower());
 
 			if (message is not null)
 			{
@@ -73,6 +75,22 @@ namespace RentAppBE.Helper
 			}
 
 			return errorMessage;
+		}
+
+		public static bool IsValidEmail(string email)
+		{
+			if (string.IsNullOrWhiteSpace(email))
+				return false;
+
+			try
+			{
+				var addr = new System.Net.Mail.MailAddress(email);
+				return addr.Address == email;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 	}
 }

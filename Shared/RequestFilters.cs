@@ -1,0 +1,11 @@
+﻿namespace RentAppBE.Shared
+{
+	public class RequestFilters : GeneralRequest
+	{
+		public string? SearchValue { get; init; }
+		public string? SortColumn { get; set; }
+		public string? SortDirection { get; set; } = "ASC";
+		public int PageNumber { get; init; } = 1;
+		public int PageSize { get; init; } = 10;
+	}
+}
