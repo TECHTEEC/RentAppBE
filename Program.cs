@@ -201,49 +201,49 @@ using (var scope = app.Services.CreateScope())
 				EnglisMsg = "Invalid email format"
 			},
 
-                  new UserMessage
-            {
-                Id = Guid.NewGuid(),
-                ArabicMsg = "الهاتف مطلوب",
-                EnglisMsg = "Phone number is required"
-            },
-                   new UserMessage
-            {
-                Id = Guid.NewGuid(),
-                ArabicMsg = "يجب أن يبدأ رقم الهاتف بـ +9639 ويتبعه 8 أرقام",
-                EnglisMsg = "Phone number must start with +9639 and be followed by 8 digits"
-            },
-                  new UserMessage
-            {
-                Id = Guid.NewGuid(),
-                ArabicMsg = "التوكين غير صالح",
-                EnglisMsg = "Invalid or already revoked refresh token"
-            },
-                 new UserMessage
-            {
-                Id = Guid.NewGuid(),
-                ArabicMsg = "تم نسجيل الخروج بنجاح",
-                EnglisMsg = "Logged out successfully"
-            },
-                 new UserMessage
-            {
-                Id = Guid.NewGuid(),
-                ArabicMsg = "مسنخدم عير صحيح",
-                EnglisMsg = "Invalid User"
-            },
-                new UserMessage
-            {
-                Id = Guid.NewGuid(),
-                ArabicMsg = "تم ايقاف المستخدم",
-                EnglisMsg = "User Deactivated successfully"
-            },
+				  new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "الهاتف مطلوب",
+				EnglisMsg = "Phone number is required"
+			},
+				   new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "يجب أن يبدأ رقم الهاتف بـ +9639 ويتبعه 8 أرقام",
+				EnglisMsg = "Phone number must start with +9639 and be followed by 8 digits"
+			},
+				  new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "التوكين غير صالح",
+				EnglisMsg = "Invalid or already revoked refresh token"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "تم نسجيل الخروج بنجاح",
+				EnglisMsg = "Logged out successfully"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "مسنخدم عير صحيح",
+				EnglisMsg = "Invalid User"
+			},
+				new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "تم ايقاف المستخدم",
+				EnglisMsg = "User Deactivated successfully"
+			},
 
-               new UserMessage
-            {
-                Id = Guid.NewGuid(),
-                ArabicMsg = "فشل تعديل مستخدم",
-                EnglisMsg = "Failed to update user"
-            },
+			   new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "فشل تعديل مستخدم",
+				EnglisMsg = "Failed to update user"
+			},
 				  new UserMessage
 			{
 				Id = Guid.NewGuid(),
@@ -301,12 +301,6 @@ using (var scope = app.Services.CreateScope())
 				 new UserMessage
 			{
 				Id = Guid.NewGuid(),
-				ArabicMsg = "صورة غير صحيحة",
-				EnglisMsg = "Invalid image"
-			},
-				 new UserMessage
-			{
-				Id = Guid.NewGuid(),
 				ArabicMsg = "رقم الآيبان غير صالح",
 				EnglisMsg = "Invalid IBAN number"
 			},
@@ -351,6 +345,18 @@ using (var scope = app.Services.CreateScope())
 				Id = Guid.NewGuid(),
 				ArabicMsg = "معرف المستخدم غير صالح",
 				EnglisMsg = "Invalid user ID"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "رقم الآيبان مستخدم مسبقاً",
+				EnglisMsg = "IBAN already in use"
+			},
+				 new UserMessage
+			{
+				Id = Guid.NewGuid(),
+				ArabicMsg = "معرف الملف الشخصي ID غير صالح",
+				EnglisMsg = "Invalid profile ID"
 			},
 
 		});

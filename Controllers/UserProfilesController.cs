@@ -19,7 +19,7 @@ namespace RentAppBE.Controllers
 		{
 			var userId = User.GetUserId()!;
 
-			return Ok(await _userProfileService.GetUserProfileAsync(request));
+			return Ok(await _userProfileService.GetUserProfileAsync(userId, request));
 		}
 
 

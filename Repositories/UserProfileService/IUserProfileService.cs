@@ -6,7 +6,7 @@ namespace RentAppBE.Repositories.UserProfileService
 {
 	public interface IUserProfileService
 	{
-		Task<GeneralResponse<UserProfileResponse>> GetUserProfileAsync(UserProfileRequest request);
+		Task<GeneralResponse<UserProfileResponse>> GetUserProfileAsync(string userId, UserProfileRequest request);
 		Task<GeneralResponse<AddInitialUserProfileResponse>> AddInitialUserProfileAsync(string userId, AddInitialUserProfileRequest request);
 		Task<GeneralResponse<UpdateUserProfileResponse>> UpdateUserProfileAsync(string userId, UpdateUserProfileRequest request);
 	}
