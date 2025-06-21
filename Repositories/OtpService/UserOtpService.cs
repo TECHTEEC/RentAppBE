@@ -15,6 +15,7 @@ using RentAppBE.Shared;
 using RentAppBE.Shared.Services.ValidationService;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Numerics;
 using System.Security.Claims;
 using System.Text;
 
@@ -50,7 +51,6 @@ namespace RentAppBE.Repositories.OtpService
             return await SendOtpBySMS(phone, lang);
 
         }
-
         public async Task<GeneralResponse<object>> SendEmailOtpAsync(string email, LangEnum lang)
         {
 
@@ -58,11 +58,11 @@ namespace RentAppBE.Repositories.OtpService
             return await SendOtpByEmail(email, lang);
 
         }
-
         public async Task<GeneralResponse<TokenResultDto>> VerifyPhoneOtpAndRegisterAsync(string phone, string code, LangEnum lang, bool isVendor)
         {
             var messages = await _dbContext.UserMessages.ToListAsync();
             var isPhoneValid = Utilities.IsValidWhatsAppNumber(phone);
+            bool isNewRegister = false;
 
             if (isVendor && !isPhoneValid)
             {
@@ -93,9 +93,10 @@ namespace RentAppBE.Repositories.OtpService
 
                 if (user == null)
                 {
+                    isNewRegister = true;
                     user = new ApplicationUser
                     {
-                        UserName = phone,
+                        UserName = Guid.Empty.ToString() + "_" + Guid.NewGuid().ToString(),
                         Email = null,
                         EmailConfirmed = false,
                         PhoneNumber = phone,
@@ -116,14 +117,23 @@ namespace RentAppBE.Repositories.OtpService
                     }
                 }
 
-                return await _tokenService.CreateAccessToken(user, lang);
+                var auth = await _tokenService.CreateAccessToken(user, lang);
+                auth.Data.UserId = user.Id;
+                auth.Data.UserName = user.UserName.Contains(Guid.Empty.ToString()) ? null : user.UserName;
+                auth.Data.PhoneNumber = user.PhoneNumber;
+                auth.Data.Email = user.Email;
+                auth.Data.VerifiedStatus = null;
+                auth.Data.IsVendor = user.IsVendor;
+                auth.Data.IsNewUser = isNewRegister;
+                return auth;
+
             }
         }
-
         public async Task<GeneralResponse<TokenResultDto>> VerifyEmailOtpAndRegisterAsync(string email, string code, LangEnum lang, bool isVendor)
         {
             var messages = await _dbContext.UserMessages.ToListAsync();
             var (isEmailValid, emailError) = await _validationService.ValidateEmail(email, lang);
+            bool isNewRegister = false;
 
             if (!isEmailValid)
             {
@@ -154,9 +164,11 @@ namespace RentAppBE.Repositories.OtpService
 
                 if (user == null)
                 {
+                    isNewRegister = true;
+
                     user = new ApplicationUser
                     {
-                        UserName = email,
+                        UserName = Guid.Empty.ToString() + "_" + Guid.NewGuid().ToString(),
                         Email = email,
                         EmailConfirmed = true,
                         PhoneNumber = null,
@@ -177,10 +189,17 @@ namespace RentAppBE.Repositories.OtpService
                     }
                 }
 
-                return await _tokenService.CreateAccessToken(user, lang);
+                var auth = await _tokenService.CreateAccessToken(user, lang);
+                auth.Data.UserId = user.Id;
+                auth.Data.UserName = user.UserName.Contains(Guid.Empty.ToString()) ? null : user.UserName;
+                auth.Data.PhoneNumber = user.PhoneNumber;
+                auth.Data.Email = user.Email;
+                auth.Data.VerifiedStatus = null;
+                auth.Data.IsVendor = user.IsVendor;
+                auth.Data.IsNewUser = isNewRegister;
+                return auth;
             }
         }
-
         private async Task<GeneralResponse<object>> SendOtpByEmail(string email, LangEnum lang)
         {
 
@@ -262,7 +281,6 @@ namespace RentAppBE.Repositories.OtpService
                 Messages.FirstOrDefault(x => x.EnglisMsg == "OTP has been sent")?.ArabicMsg, true, 200);
 
         }
-
         private async Task<GeneralResponse<object>> SendOtpBySMS(string phone, LangEnum lang)
         {
             var isPhoneValid = Utilities.IsValidWhatsAppNumber(phone);
@@ -277,7 +295,6 @@ namespace RentAppBE.Repositories.OtpService
             }
             return new GeneralResponse<object>(true, "Test", true, 200);
         }
-
         public async Task<GeneralResponse<TokenResultDto>> VerifyPhoneOtpAndEditAsync(string userId, string phone, string code, LangEnum lang, bool isVendor)
         {
             var messages = await _dbContext.UserMessages.ToListAsync();
@@ -326,10 +343,17 @@ namespace RentAppBE.Repositories.OtpService
                     }
                 }
 
-                return await _tokenService.CreateAccessToken(user, lang);
+                var auth = await _tokenService.CreateAccessToken(user, lang);
+                auth.Data.UserId = user.Id;
+                auth.Data.UserName = user.UserName.Contains(Guid.Empty.ToString()) ? null : user.UserName;
+                auth.Data.PhoneNumber = user.PhoneNumber;
+                auth.Data.Email = user.Email;
+                auth.Data.VerifiedStatus = null;
+                auth.Data.IsVendor = user.IsVendor;
+                auth.Data.IsNewUser = false;
+                return auth;
             }
         }
-
         public async Task<GeneralResponse<TokenResultDto>> VerifyEmailOtpAndEditAsync(string userId, string email, string code, LangEnum lang, bool isVendor)
         {
             var messages = await _dbContext.UserMessages.ToListAsync();
@@ -378,8 +402,15 @@ namespace RentAppBE.Repositories.OtpService
                     }
                 }
 
-                return await _tokenService.CreateAccessToken(user, lang);
-
+                var auth = await _tokenService.CreateAccessToken(user, lang);
+                auth.Data.UserId = user.Id;
+                auth.Data.UserName = user.UserName.Contains(Guid.Empty.ToString()) ? null : user.UserName;
+                auth.Data.PhoneNumber = user.PhoneNumber;
+                auth.Data.Email = user.Email;
+                auth.Data.VerifiedStatus = null;
+                auth.Data.IsVendor = user.IsVendor;
+                auth.Data.IsNewUser = false;
+                return auth;
             }
         }
     }
